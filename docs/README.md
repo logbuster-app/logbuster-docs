@@ -58,3 +58,10 @@ Este repositório (`logbuster-docs`) concentra o **Specification-Driven Developm
 | [`[BACK-05]`](https://trello.com/c/yWVNSm4E) | Endpoint 5 — Nota média do filme (`GET` filmes e por ID) | Marcelo | [SPEC-BACK-05](specs/back/SPEC-BACK-05-nota-media-filmes.md) |
 | [`[BACK-06]`](https://trello.com/c/GVUsTSLs) | Endpoint 6 — `POST` cadastro/toggle de interação (`LIKE`, `SPOILER`, `BEM ARGUMENTADA`) | João Victor | [SPEC-BACK-06](specs/back/SPEC-BACK-06-post-interacao-avaliacao.md) |
 | [`[BACK-07]`](https://trello.com/c/BKdWBAp8) | Endpoint 7 — `GET` consulta de filme específico na OMDb + média | Marcelo | [SPEC-BACK-07](specs/back/SPEC-BACK-07-get-filme-especifico-omdb.md) |
+
+### 4. Entrega de 25/11 — Back-end (`logbuster-api`)
+
+| Card Trello | Escopo | Responsável | SPEC Vinculada |
+| :--- | :--- | :--- | :--- |
+| [Back A](https://trello.com/c/161rtpgG/81-back-a) | Autenticação, perfil público, foto e fundo personalizados | Marcelo | [SPEC-BACK-08](specs/back/SPEC-BACK-08-auth-perfil-publico.md) |
+| [Back B](https://trello.com/c/adnU5yAW/82-back-b) | Resumo, sugestão de spoiler, arquétipo e retrospectiva condicional | João Victor | [SPEC-BACK-09](specs/back/SPEC-BACK-09-ia-e-arquetipo.md) |

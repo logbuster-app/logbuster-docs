@@ -26,4 +26,6 @@
   - [SPEC-BACK-05 · Nota Média dos Filmes](specs/back/SPEC-BACK-05-nota-media-filmes.md)
   - [SPEC-BACK-06 · POST Interação Avaliação](specs/back/SPEC-BACK-06-post-interacao-avaliacao.md)
   - [SPEC-BACK-07 · GET Filme Específico (OMDb)](specs/back/SPEC-BACK-07-get-filme-especifico-omdb.md)
+  - [SPEC-BACK-08 · Autenticação e Perfil Público](specs/back/SPEC-BACK-08-auth-perfil-publico.md)
+  - [SPEC-BACK-09 · Resumo, Spoiler e Arquétipo](specs/back/SPEC-BACK-09-ia-e-arquetipo.md)
 - [ADRs (Pós-PR & Decisões)](adr/README.md)
