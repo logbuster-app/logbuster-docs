@@ -9,6 +9,8 @@
 - **Altera:** [`SPEC-BACK-09`](../back/SPEC-BACK-09-ia-e-arquetipo.md) (sugestão de spoiler), [`SPEC-BACK-06`](../back/SPEC-BACK-06-post-interacao-avaliacao.md) (efeito do voto de spoiler), [`SPEC-BACK-01`](../back/SPEC-BACK-01-post-cadastro-avaliacao.md) e [`SPEC-API-00`](../transversais/SPEC-API-00-contrato-http-e-erros.md) (significado de `is_spoiler`)
 - **Front:** sem mudança. O front continua ocultando por `is_spoiler` **ou** por 3 ou mais votos de spoiler, como hoje.
 
+> **Resumo da decisão:** não existe mais checagem de rascunho e não existe endpoint de análise. A análise de spoiler é disparada **pela camada de service**, logo depois que o service conclui o salvamento: o `ReviewService` dispara ao criar a avaliação, e o `InteractionService` dispara ao registrar o primeiro voto de spoiler (segunda opinião). **Controllers e contrato da API não mudam.** A rota antiga de checagem de rascunho (`POST /api/v1/reviews/spoiler-check`) é **removida** por este CR.
+
 ---
 
 ## 1. Motivo
@@ -30,12 +32,12 @@ As camadas valem **sempre e ao mesmo tempo**. A comunidade não depende da IA: s
 
 | Antes (SPEC original) | Depois (este CR) |
 | :--- | :--- |
-| A IA analisa o rascunho antes de publicar, pela rota `POST /api/v1/ai/spoiler-check` | A IA analisa a avaliação já salva, em segundo plano, logo após o `POST /api/v1/reviews` |
+| A IA analisa o rascunho antes de publicar, pela rota `POST /api/v1/reviews/spoiler-check` | O `ReviewService`, depois de salvar, agenda a análise em segundo plano. Sem endpoint e sem mudança no controller |
 | A IA só sugere, e o autor decide | Se a IA disser SIM, o back grava `is_spoiler = true` |
-| O voto de spoiler só soma no contador | O **primeiro** voto de spoiler também pede uma segunda opinião à IA, uma única vez por avaliação |
+| O voto de spoiler só soma no contador | O `InteractionService`, ao registrar o **primeiro** voto de spoiler, também agenda uma segunda opinião da IA, uma única vez por avaliação |
 | A IA recebe título e texto | A IA recebe título, ano, **sinopse curta** e texto |
 | `is_spoiler` = marcação do autor | `is_spoiler` = marcação do autor **ou** da IA |
-| Rota `POST /api/v1/ai/spoiler-check` pública | Rota removida |
+| Rota `POST /api/v1/reviews/spoiler-check` pública | Rota removida |
 
 O formato das respostas **não muda**: nenhum campo novo na API. A única mudança de banco é uma coluna interna (seção 5.1).
 
@@ -71,7 +73,7 @@ A sinopse também vai entre marcadores próprios (por exemplo, `<sinopse>`), tra
 
 ## 4. Regras de Negócio
 
-- **RN-01 (Publicação não espera a IA).** `POST /api/v1/reviews` salva a avaliação e responde `201` imediatamente, com o `is_spoiler` enviado pelo autor. A análise da camada 2 é agendada na mesma requisição, com `BackgroundTasks` do FastAPI.
+- **RN-01 (Publicação não espera a IA).** `POST /api/v1/reviews` continua igual: salva a avaliação e responde `201` imediatamente, com o `is_spoiler` enviado pelo autor. Quem agenda a análise da camada 2 é o `ReviewService`, logo depois de concluir o salvamento (seção 5.2).
 - **RN-02 (A IA só liga, nunca desliga).** Em qualquer análise (camada 2 ou 3):
 
   | Resultado da IA | Efeito em `is_spoiler` |
@@ -82,7 +84,7 @@ A sinopse também vai entre marcadores próprios (por exemplo, `<sinopse>`), tra
 
   Se o autor marcou spoiler, continua `true` mesmo que a IA diga NÃO.
 - **RN-03 (Pular quando já está marcada).** Se `is_spoiler` já for `true`, nenhuma análise é feita, porque o resultado não mudaria nada. Isso economiza cota.
-- **RN-04 (Gatilho da segunda opinião).** Quando um voto de spoiler é **ativado** (o toggle resulta em `active = true` para o tipo `spoiler`) e a avaliação ainda tem `is_spoiler = false` e nunca passou por segunda opinião, o back agenda a análise da camada 3 em segundo plano, com o mesmo contexto da seção 3. A resposta do voto não espera a IA.
+- **RN-04 (Gatilho da segunda opinião).** Quando um voto de spoiler é **ativado** (o toggle resulta em `active = true` para o tipo `spoiler`) e a avaliação ainda tem `is_spoiler = false` e nunca passou por segunda opinião, o `InteractionService` agenda a análise da camada 3 em segundo plano, com o mesmo contexto da seção 3, logo depois de concluir o registro do voto. A resposta do voto não espera a IA, e o controller de interações não muda.
 - **RN-05 (Uma segunda opinião por avaliação).** A avaliação é marcada como "segunda opinião feita" **antes** de chamar a IA, de forma atômica (seção 5.1). Votar, desvotar e votar de novo, ou dois votos simultâneos, não disparam outra análise. Se a IA falhar nessa tentativa, não há nova tentativa: a camada 4 cobre.
 - **RN-06 (Segunda opinião independente).** A análise da camada 3 usa exatamente o mesmo prompt e o mesmo contexto da camada 2. A IA **não** é informada de que houve voto.
 - **RN-07 (Avaliações antigas).** Avaliações anteriores a este CR não são reanalisadas em lote. Elas passam pela segunda opinião naturalmente se receberem um voto de spoiler (RN-04).
@@ -102,20 +104,25 @@ Migration Alembic `0005`: coluna `ai_rechecked_at` na tabela de avaliações (da
 
 Marcação atômica, para garantir a RN-05 com votos simultâneos: atualizar só se ainda for nulo e só agendar a análise se a atualização afetou a linha. Por exemplo, `UPDATE reviews SET ai_rechecked_at = now() WHERE id = :id AND ai_rechecked_at IS NULL AND is_spoiler = false`, verificando a contagem de linhas afetadas.
 
-### 5.2 Processamento em segundo plano
+### 5.2 Processamento em segundo plano (pela camada de service)
 
-- `POST /api/v1/reviews` e `POST /api/v1/reviews/{review_id}/interactions` recebem `BackgroundTasks`.
+- **Controllers não mudam.** Nada de `BackgroundTasks` nas rotas. O disparo acontece dentro dos services, depois de concluído o salvamento:
+  - `ReviewService.create_for_user`: depois de salvar com sucesso, se `is_spoiler = false`, agenda a análise da camada 2.
+  - `InteractionService.toggle`: depois de registrar o voto, se o resultado for voto de spoiler ativado e a marcação atômica da seção 5.1 afetar a linha, agenda a análise da camada 3.
+- **Agendador injetado.** Um componente novo (por exemplo, `SpoilerReviewScheduler` em `services/`) recebe o pedido de análise e o executa fora da requisição, com um pool pequeno de threads do próprio processo (por exemplo, `ThreadPoolExecutor` com 2 workers). Ele é injetado nos services por `dependencies/services.py`, como os demais serviços.
+- **Testes:** os testes injetam um agendador falso, que executa na hora (ou só registra o pedido), sem threads e sem IA real.
 - A tarefa **abre a própria sessão do banco**, porque a sessão da requisição já foi encerrada quando ela roda.
-- Usa o timeout já configurado para a IA. Erros não sobem para a requisição nem derrubam o processo.
+- Usa o timeout já configurado para a IA. Erros são registrados no log e não sobem para a requisição nem derrubam o processo.
 - Atualização: `is_spoiler = true` somente quando o resultado for `suspected`. Nenhum outro campo visível da avaliação é alterado.
+- Limitação aceita: análises ainda na fila se perdem se o processo reiniciar. A avaliação fica como estava, e os votos da comunidade cobrem.
 
 ### 5.3 Respostas da API
 
-Sem mudança de formato. `is_spoiler` continua booleano em todas as respostas que trazem avaliação. A resposta do voto (SPEC-BACK-06) não muda.
+Sem mudança de formato nem de rota (exceto a remoção da seção 5.4). `is_spoiler` continua booleano em todas as respostas que trazem avaliação. A resposta do voto (SPEC-BACK-06) não muda.
 
-### 5.4 Rota removida
+### 5.4 Rota antiga de checagem de rascunho: remover
 
-`POST /api/v1/ai/spoiler-check` deixa de existir e passa a responder `404`. O front atual não usa essa rota (verificado em 22/11/2026).
+`POST /api/v1/reviews/spoiler-check` deixa de existir e passa a responder `404`. O front atual não usa essa rota (verificado em 22/11/2026).
 
 ## 6. Custo de IA
 
@@ -182,7 +189,7 @@ Selo de origem da marcação, campo novo na API, reanálise em lote de avaliaç�
 - **Então** `is_spoiler` passa a `true`.
 
 ### Cenário 10: Rota antiga
-- **Quando** alguém chama `POST /api/v1/ai/spoiler-check`
+- **Quando** alguém chama `POST /api/v1/reviews/spoiler-check`
 - **Então** recebe `404`.
 
 ## 10. Definição de Pronto (DoD)
