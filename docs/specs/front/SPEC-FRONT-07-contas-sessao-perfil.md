@@ -198,6 +198,12 @@ Preparar ao menos uma conta de demonstração com foto, fundo, bio e 3 ou mais a
 - **Então** vê nome, data de entrada, bio, imagens e as avaliações da conta, da mais recente para a mais antiga, cada uma com o título do filme e link para a ficha
 - **E** um perfil sem avaliações mostra o estado vazio, e um `id` inexistente mostra a página não encontrada.
 
+### Cenário 6b: Spoiler oculto no perfil
+- **Dado** um perfil cujo histórico tem uma avaliação com `is_spoiler = true` (marcada pelo autor ou pela IA, conforme o [`CR-02`](../cr/CR-02-spoiler-ia-pos-publicacao.md)) e outra com 10 ou mais votos de spoiler (limiar do CR-02)
+- **Quando** um visitante abre o perfil
+- **Então** as duas aparecem com o texto oculto e o aviso "Esta avaliação contém spoiler", com o botão "Mostrar análise", igual à ficha do filme
+- **E** o título do filme e a nota continuam visíveis.
+
 ### Cenário 7: Editar perfil
 - **Dado** o titular autenticado em seu próprio perfil
 - **Quando** altera bio e avatar e salva

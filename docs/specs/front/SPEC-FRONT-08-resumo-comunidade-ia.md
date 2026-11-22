@@ -13,12 +13,12 @@
 
 O back já gera, sob demanda e com cache por filme, um parágrafo de IA com a opinião da comunidade sobre o filme ([`SPEC-BACK-09`](../back/SPEC-BACK-09-ia-e-arquetipo.md)). Esta SPEC coloca esse resumo na ficha do filme (`/movies/[id]`), no topo da seção de avaliações, com aviso claro de que o texto foi gerado por IA.
 
-> **Spoiler com IA não está nesta SPEC.** Pelo [`CR-02`](../cr/CR-02-spoiler-ia-pos-publicacao.md), a análise de spoiler acontece no back depois de publicar e grava `is_spoiler`, que o front já usa para ocultar. Não há aviso no modal e nada muda no front para isso.
+> **Spoiler com IA:** pelo [`CR-02`](../cr/CR-02-spoiler-ia-pos-publicacao.md), a análise acontece no back depois de publicar e grava `is_spoiler`, que o front já usa para ocultar. Não há aviso no modal. A única mudança de front do CR-02 também fica neste card: o limiar de votos da comunidade passa de 3 para **10** no `ReviewCard` (seção 4.4).
 
 ## 2. Escopo
 
-- **Inclui:** service, hook e componente do resumo, os quatro estados de exibição (carregando, pronto, indisponível e oculto), integração na página do filme, mock para desenvolvimento e testes.
-- **Não inclui:** gerar ou forçar a regeneração do resumo, resumo por pessoa, outros idiomas, perguntas livres à IA, aviso de spoiler no modal, selo de origem do spoiler e qualquer mudança na ocultação de avaliações.
+- **Inclui:** service, hook e componente do resumo, os quatro estados de exibição (carregando, pronto, indisponível e oculto), integração na página do filme, mock para desenvolvimento e testes. Também o limiar de 10 votos de spoiler no `ReviewCard` (CR-02).
+- **Não inclui:** gerar ou forçar a regeneração do resumo, resumo por pessoa, outros idiomas, perguntas livres à IA, aviso de spoiler no modal e selo de origem do spoiler.
 
 ## 3. Regras de Negócio
 
@@ -35,7 +35,8 @@ O back já gera, sob demanda e com cache por filme, um parágrafo de IA com a op
 
 - **RN-03 (Aviso de IA sempre visível).** Sempre que houver texto, o selo **"Gerado por IA"** e a data de geração ("Gerado por IA em 23 de nov. de 2026") aparecem junto dele, nunca escondidos atrás de um clique.
 - **RN-04 (Texto como dado).** O texto é exibido como texto puro, preservando quebras de linha. Nunca interpretar HTML ou markdown (nada de `dangerouslySetInnerHTML`).
-- **RN-05 (Sem spoilers por responsabilidade do back).** O back já exclui do resumo as avaliações marcadas como spoiler (pelo autor ou pela IA) e as que têm 3 ou mais votos de spoiler. O front não filtra nada e não oculta o resumo.
+- **RN-05 (Sem spoilers por responsabilidade do back).** O back já exclui do resumo as avaliações marcadas como spoiler (pelo autor ou pela IA) e as que têm 10 ou mais votos de spoiler (CR-02). O front não filtra nada e não oculta o resumo.
+- **RN-08 (Limiar de votos, CR-02).** No `ReviewCard`, a ocultação por votos passa de `counts.spoiler >= 3` para uma constante nomeada de **10** votos (por exemplo, `SPOILER_VOTE_THRESHOLD`). A ocultação por `isSpoiler` não muda.
 - **RN-06 (Atualização).** O resumo é carregado uma vez por visita à ficha. Publicar uma avaliação **não** recarrega o resumo, porque o back só o regenera depois de algumas avaliações novas. Ao sair da página antes da resposta, a requisição é cancelada.
 - **RN-07 (Mock).** Com `NEXT_PUBLIC_USE_API_MOCKS=true`, o service devolve um resumo simulado, com latência, permitindo testar os quatro estados sem a IA real, no mesmo padrão de `reviews.mock.ts`.
 
@@ -95,7 +96,13 @@ Na página, o bloco entra dentro do `MovieDetail`, como filho, antes da lista:
 </MovieDetail>
 ```
 
-### 4.4 Visual (identidade "Cartaz do Cinema Novo")
+### 4.4 Limiar de votos no `ReviewCard` (CR-02)
+
+- `src/features/reviews/components/ReviewCard.tsx`: trocar `review.counts.spoiler >= 3` pela constante de 10 votos.
+- Atualizar `ReviewCard.test.tsx` (o teste "oculta quando counts.spoiler >= 3") e o mock em `reviews.mock.ts` que usa 4 votos para ativar a proteção.
+- Como o perfil (SPEC-FRONT-07) reaproveita o `ReviewCard`, a regra vale para lá também.
+
+### 4.5 Visual (identidade "Cartaz do Cinema Novo")
 
 Segue a [`SPEC-UI-01`](../transversais/SPEC-UI-01-identidade-visual.md), seção 6, item 5.
 
@@ -133,6 +140,12 @@ Acessibilidade: o bloco é uma `section` com `aria-labelledby` apontando para o 
 - **Quando** é exibido
 - **Então** aparece como texto literal, sem formatação nem HTML interpretado.
 
+### Cenário 6: Limiar de 10 votos
+- **Dado** uma avaliação sem marcação de spoiler
+- **Quando** tem 9 votos de spoiler
+- **Então** o texto aparece normalmente
+- **E** com 10 votos, o texto fica oculto com "Mostrar análise".
+
 ### Cenário 5: Sair antes da resposta
 - **Dado** a ficha aberta com o resumo ainda carregando
 - **Quando** a pessoa volta para a busca
@@ -141,6 +154,7 @@ Acessibilidade: o bloco é uma `section` com `aria-labelledby` apontando para o 
 ## 6. Definição de Pronto (DoD)
 
 - [ ] Service, mock, hook e componente com testes ao lado do código, cobrindo os quatro estados, o mapper e o cancelamento.
+- [ ] Limiar de 10 votos no `ReviewCard`, com teste e mock atualizados.
 - [ ] Bloco integrado na ficha do filme e testado contra a API local e o deploy de teste (23/11), com a chave da IA configurada.
 - [ ] `npm run check` e `npm run build` passando no CI.
 - [ ] Documentação criada em `logbuster-web/docs/features/resumo-da-comunidade.md`.

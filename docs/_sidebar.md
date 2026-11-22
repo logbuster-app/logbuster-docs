@@ -33,5 +33,5 @@
 - Change Requests (CR)
   - [Registro de Mudanças](specs/cr/README.md)
   - [CR-01 · Conta obrigatória para publicar](specs/cr/CR-01-conta-obrigatoria-publicar.md)
-  - [CR-02 · Antispoiler em camadas](specs/cr/CR-02-spoiler-ia-pos-publicacao.md)
+  - [CR-02 · Antispoiler: IA e 10 votos](specs/cr/CR-02-spoiler-ia-pos-publicacao.md)
 - [ADRs (Pós-PR & Decisões)](adr/README.md)
