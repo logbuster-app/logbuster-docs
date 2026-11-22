@@ -4,7 +4,7 @@
 - **Card(s) Trello:** [Front 1](https://trello.com/b/qTbAU9jJ/equipe-alpha-gp) *(atualizar com o link do card)*
 - **Repositório:** `logbuster-web`
 - **Responsável:** Thyago Viana, com apoio de Marcelo Palmeira (Back A)
-- **Dependências:** [`SPEC-BACK-08`](../back/SPEC-BACK-08-auth-perfil-publico.md), [`SPEC-API-00`](../transversais/SPEC-API-00-contrato-http-e-erros.md), [`SPEC-FRONT-03`](SPEC-FRONT-03-lista-ordenacao-interacoes-avaliacoes.md), [`SPEC-FRONT-04`](SPEC-FRONT-04-modal-cadastro-avaliacao.md), [`SPEC-UI-01`](../transversais/SPEC-UI-01-identidade-visual.md)
+- **Dependências:** [`SPEC-BACK-08`](../back/SPEC-BACK-08-auth-perfil-publico.md), [`SPEC-API-00`](../transversais/SPEC-API-00-contrato-http-e-erros.md), [`SPEC-FRONT-03`](SPEC-FRONT-03-lista-ordenacao-interacoes-avaliacoes.md), [`SPEC-FRONT-04`](SPEC-FRONT-04-modal-cadastro-avaliacao.md), [`SPEC-UI-01`](../transversais/SPEC-UI-01-identidade-visual.md), [`CR-01`](../cr/CR-01-conta-obrigatoria-publicar.md) (back exige conta para publicar)
 - **Entrega:** congelamento em 24/11/2026
 
 ---
@@ -13,7 +13,7 @@
 
 O back-end de contas e perfis já está na `main` ([`SPEC-BACK-08`](../back/SPEC-BACK-08-auth-perfil-publico.md)). Esta SPEC cobre o lado do front: cadastro, login, sessão, avatar no cabeçalho, publicação de avaliação com a conta, perfil público com histórico e edição do perfil pelo titular (bio, avatar, foto e fundo).
 
-A publicação **anônima continua funcionando**: login é opcional. O perfil também precisa receber, sem retrabalho, o **arquétipo** e o botão da **Máquina do Tempo**, que serão feitos por outra pessoa (Front 3) em cima desta tela. Por isso a tela expõe pontos de encaixe (seção 4.7).
+**Publicar avaliação exige conta** (decisão de 22/11/2026, registrada no [`CR-01`](../cr/CR-01-conta-obrigatoria-publicar.md) para o back). Navegar, buscar, ler avaliações e ver perfis continuam abertos a qualquer visitante. Os votos seguem anônimos nesta SPEC. O perfil também precisa receber, sem retrabalho, o **arquétipo** e o botão da **Máquina do Tempo**, que serão feitos por outra pessoa (Front 3) em cima desta tela. Por isso a tela expõe pontos de encaixe (seção 4.7).
 
 > **Identidade visual:** seguir a [`SPEC-UI-01`](../transversais/SPEC-UI-01-identidade-visual.md) (revisão 2, **"Cartaz do Cinema Novo"**: vermelho `primary`, osso `foreground`, cantos retos, títulos em `font-display`), em especial a seção 6, com os padrões de formulário, menu de conta e perfil. Em caso de divergência, valem os tokens de `src/app/globals.css`.
 
@@ -23,7 +23,7 @@ A publicação **anônima continua funcionando**: login é opcional. O perfil ta
   - Telas `/register` (cadastro) e `/login`, e ação **Sair**.
   - Sessão no navegador (token JWT), restauração ao recarregar e tratamento de expiração.
   - Menu de conta no cabeçalho (Entrar e Criar conta / avatar, nome e Sair).
-  - Ajuste do modal de avaliação para quem está logado.
+  - Avaliar passa a exigir login: botão "Avaliar filme" leva ao login quando não há sessão, e o modal perde o campo de nome.
   - Rota `/users/[id]` com perfil público e histórico paginado das avaliações da conta.
   - Edição do perfil pelo titular: bio, avatar de catálogo, foto de perfil e fundo.
   - Ajustes em `shared/lib/apiClient.ts` para corpo binário e resposta `204`.
@@ -31,7 +31,7 @@ A publicação **anônima continua funcionando**: login é opcional. O perfil ta
 
 ## 3. Regras de Negócio
 
-- **RN-01 (Login opcional).** Nenhuma tela existente passa a exigir conta. Sem sessão, avaliar e votar funcionam como hoje, com `author_name` e `X-Visitor-Id`.
+- **RN-01 (Avaliar exige conta).** Só publicar avaliação exige sessão. Buscar, ver a ficha, ler avaliações, ver perfis e votar continuam abertos (os votos seguem com `X-Visitor-Id`). Sem sessão, o botão **"Avaliar filme"** continua visível e leva para `/login?next=/movies/{id}`. Depois do login, a pessoa volta para o filme.
 - **RN-02 (Sessão).** O token e os dados mínimos de quem está logado (`userId`, `displayName`) ficam em `localStorage` sob a chave `logbuster:session`, junto com o instante de expiração calculado a partir de `expires_in`. Não há refresh token: ao expirar (1 hora por padrão), a sessão é descartada e a pessoa volta ao estado anônimo. Se `localStorage` estiver indisponível, a sessão vale só até recarregar a página, sem quebrar a aplicação.
 - **RN-03 (Token enviado automaticamente).** Toda chamada ao `backendApi` envia `Authorization: Bearer <token>` quando há sessão válida, além do `X-Visitor-Id`. Nenhum componente ou hook monta esse header.
 - **RN-04 (Expiração e 401).** Uma resposta `401` a uma chamada que **enviou token** limpa a sessão e atualiza a interface para o estado anônimo, sem recarregar a página nem apagar o que a pessoa digitou. Um `401` de `/auth/login` (credenciais erradas) **não** limpa nada e mostra a mensagem do envelope no formulário.
@@ -41,7 +41,7 @@ A publicação **anônima continua funcionando**: login é opcional. O perfil ta
   - Senha no cadastro: 8 a 128 caracteres. No login: obrigatória.
   - Bio: até 160 caracteres, com contador. Pode ser limpa.
 - **RN-06 (Redirecionamento).** Após login ou cadastro, volta para a página de origem (`?next=`) ou para `/`. O valor de `next` só é aceito se começar com `/` e **não** começar com `//` (evita redirecionamento aberto). Após o cadastro, a pessoa é autenticada automaticamente (cadastro seguido de login com as mesmas credenciais).
-- **RN-07 (Publicação logada).** Com sessão, o modal de avaliação não pede nome, mostra "Publicando como *nome*" e não envia `author_name`. Sem sessão, mantém o comportamento atual. Se a sessão expirar durante o preenchimento (RN-04), o modal passa ao modo anônimo e **preserva** nota, destaques, texto e spoiler, exibindo o campo de nome e um aviso para escolher entre entrar de novo ou publicar como anônimo.
+- **RN-07 (Modal de avaliação).** O modal só abre com sessão. Ele não tem campo de nome, mostra "Publicando como *nome*" e não envia `author_name`. O nome salvo em `localStorage` (`logbuster:review_author_name`) deixa de ser usado. Se a publicação retornar `401` (sessão expirada, RN-04), o modal **preserva** nota, destaques, texto e spoiler e mostra um aviso com o botão "Entrar de novo", que leva ao login e volta ao filme. Guardar o rascunho para reabri-lo depois é desejável, mas não obrigatório.
 - **RN-08 (Perfil público).** Qualquer visitante abre `/users/[id]`. Mostra fundo, foto ou avatar, nome, data de entrada ("Entrou em *mês de ano*"), bio quando existir e o histórico. E-mail nunca aparece. Perfil inexistente (`404`) usa a tela `not-found` da rota.
 - **RN-09 (Imagem exibida).** Prioridade: `avatar_image_url` (foto) → ilustração do `avatar_id` → inicial do nome sobre `bg-surface-raised`. Fundo: `background_image_url` ou o fundo padrão do front (faixa chapada `bg-brand-800`). URLs relativas são resolvidas com `new URL(url, env.apiBaseUrl)`.
 - **RN-10 (Edição só do titular).** O botão **Editar perfil** só aparece quando `viewer.userId` é igual ao `user_id` do perfil aberto. Os endpoints também validam isso, então a interface nunca é a única barreira.
@@ -116,14 +116,14 @@ public/avatars/avatar-01.svg … avatar-08.svg
 | Editar bio e avatar | `PATCH /api/v1/users/me` com `{bio?, avatar_id?}` |
 | Enviar foto ou fundo | `PUT /api/v1/users/me/images/{avatar\|background}` com o arquivo no corpo → `{url}` |
 | Remover foto ou fundo | `DELETE /api/v1/users/me/images/{avatar\|background}` (`204`) |
-| Publicar avaliação | `POST /api/v1/reviews` com Bearer opcional |
+| Publicar avaliação | `POST /api/v1/reviews` com Bearer obrigatório (CR-01) |
 
 Modelo de domínio do perfil (camelCase, via mapper): `userId`, `displayName`, `createdAt`, `bio`, `avatarId`, `avatarImageUrl` e `backgroundImageUrl` (absolutas), `archetype` (`{ title, description } | null`, repassado como veio para o encaixe da seção 4.7).
 
 ### 4.5 Ajustes em `features/reviews`
 
-- `ReviewModal` e `validateReview`: `authorName` passa a ser obrigatório **somente** no modo anônimo (RN-07). Os limites de 2 a 50 caracteres continuam.
-- `createReview`: omite `author_name` quando houver sessão. O restante do payload e do tratamento de erro permanece.
+- `ReviewModal` e `validateReview`: remover o campo e a validação de `authorName` (RN-07). O botão que abre o modal fica na ficha do filme e, sem sessão, navega para o login em vez de abrir o modal (RN-01). A ficha lê a sessão por `useSession()` de `shared`.
+- `createReview`: deixa de enviar `author_name`. O restante do payload e do tratamento de erro permanece, e o `401` é tratado como na RN-07.
 - Novo service `fetchUserReviews(userId, page)` reaproveitando o mapper `toReview` (os itens têm o mesmo formato da lista de avaliações do filme).
 - Novo componente `UserReviewHistory` (paginação "Carregar mais" ou páginas, a critério da implementação), recebendo `renderMovie: (movieId: string) => ReactNode` para não importar `features/movies` (a página `users/[id]` fornece `<MovieTitleLink />`).
 - `ReviewCard` ganha uma prop opcional para exibir o filme acima do texto, sem alterar o uso atual na ficha do filme.
@@ -181,16 +181,16 @@ Preparar ao menos uma conta de demonstração com foto, fundo, bio e 3 ou mais a
 - **Então** continua logada
 - **E** com token vencido, ou com `401` em qualquer chamada autenticada, a interface volta ao estado anônimo sem recarregar a página.
 
-### Cenário 4: Avaliar logado e anônimo
+### Cenário 4: Avaliar exige login
 - **Dado** a ficha de um filme
 - **Quando** uma pessoa logada abre o modal
-- **Então** vê "Publicando como *nome*", não vê o campo de nome e a avaliação publicada aparece vinculada à conta no perfil
-- **E** sem sessão, o modal pede o nome como hoje e a avaliação é anônima.
+- **Então** vê "Publicando como *nome*", não vê campo de nome, e a avaliação publicada aparece vinculada à conta no perfil
+- **E** sem sessão, clicar em "Avaliar filme" leva ao login e, depois de entrar, volta para o mesmo filme.
 
 ### Cenário 5: Sessão expira durante o preenchimento
 - **Dado** o modal aberto, logado, com texto digitado
 - **Quando** a publicação retorna `401`
-- **Então** o texto e as seleções permanecem, o campo de nome aparece e o aviso orienta a entrar de novo ou publicar como anônimo.
+- **Então** o texto e as seleções permanecem e aparece o aviso com o botão "Entrar de novo".
 
 ### Cenário 6: Perfil público e histórico
 - **Dado** um usuário com avaliações em datas distintas
@@ -223,7 +223,7 @@ Preparar ao menos uma conta de demonstração com foto, fundo, bio e 3 ou mais a
 - [ ] 8 avatares em SVG com seletor no editor.
 - [ ] Conta de demonstração com foto, fundo, bio e avaliações.
 - [ ] `apiClient` com corpo binário e `204`, com testes.
-- [ ] Modal de avaliação funcionando logado e anônimo.
+- [ ] Avaliar exigindo login, com modal sem campo de nome e tratamento de sessão expirada.
 - [ ] Slots `archetypeSlot` e `actionsSlot` entregues e documentados para o Front 3.
 - [ ] Testes ao lado do código e `npm run check` e `npm run build` passando no CI.
 - [ ] Documentação criada em `logbuster-web/docs/features/contas-e-perfil.md` e `docs/arquitetura.md` atualizado (sessão em `shared`).
