@@ -31,5 +31,6 @@
   - [SPEC-BACK-09 · Resumo, Spoiler e Arquétipo](specs/back/SPEC-BACK-09-ia-e-arquetipo.md)
 - Change Requests (CR)
   - [Registro de Mudanças](specs/cr/README.md)
+  - [CR-01 · Conta obrigatória para publicar](specs/cr/CR-01-conta-obrigatoria-publicar.md)
   - [CR-02 · Spoiler com IA após publicar](specs/cr/CR-02-spoiler-ia-pos-publicacao.md)
 - [ADRs (Pós-PR & Decisões)](adr/README.md)
