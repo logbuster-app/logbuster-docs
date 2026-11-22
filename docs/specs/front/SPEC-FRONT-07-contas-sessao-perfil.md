@@ -4,7 +4,7 @@
 - **Card(s) Trello:** [Front 1](https://trello.com/b/qTbAU9jJ/equipe-alpha-gp) *(atualizar com o link do card)*
 - **Repositório:** `logbuster-web`
 - **Responsável:** Thyago Viana, com apoio de Marcelo Palmeira (Back A)
-- **Dependências:** [`SPEC-BACK-08`](../back/SPEC-BACK-08-auth-perfil-publico.md), [`SPEC-API-00`](../transversais/SPEC-API-00-contrato-http-e-erros.md), [`SPEC-FRONT-03`](SPEC-FRONT-03-lista-ordenacao-interacoes-avaliacoes.md), [`SPEC-FRONT-04`](SPEC-FRONT-04-modal-cadastro-avaliacao.md), identidade visual em [`logbuster-web/docs/identidade-visual.md`](https://github.com/logbuster-app/logbuster-web/blob/main/docs/identidade-visual.md)
+- **Dependências:** [`SPEC-BACK-08`](../back/SPEC-BACK-08-auth-perfil-publico.md), [`SPEC-API-00`](../transversais/SPEC-API-00-contrato-http-e-erros.md), [`SPEC-FRONT-03`](SPEC-FRONT-03-lista-ordenacao-interacoes-avaliacoes.md), [`SPEC-FRONT-04`](SPEC-FRONT-04-modal-cadastro-avaliacao.md), [`SPEC-UI-01`](../transversais/SPEC-UI-01-identidade-visual.md)
 - **Entrega:** congelamento em 24/11/2026
 
 ---
@@ -15,7 +15,7 @@ O back-end de contas e perfis já está na `main` ([`SPEC-BACK-08`](../back/SPEC
 
 A publicação **anônima continua funcionando**: login é opcional. O perfil também precisa receber, sem retrabalho, o **arquétipo** e o botão da **Máquina do Tempo**, que serão feitos por outra pessoa (Front 3) em cima desta tela. Por isso a tela expõe pontos de encaixe (seção 4.7).
 
-> **Fonte de verdade visual:** `src/app/globals.css` e `logbuster-web/docs/identidade-visual.md` (identidade **"Cartaz do Cinema Novo"**: vermelho `primary`, osso `foreground`, cantos retos, títulos em `font-display`). A [`SPEC-UI-01`](../transversais/SPEC-UI-01-identidade-visual.md) deste repositório de docs ainda descreve a identidade antiga (roxo e âmbar) e **não deve ser usada** como referência de cor ou geometria até ser atualizada.
+> **Identidade visual:** seguir a [`SPEC-UI-01`](../transversais/SPEC-UI-01-identidade-visual.md) (revisão 2, **"Cartaz do Cinema Novo"**: vermelho `primary`, osso `foreground`, cantos retos, títulos em `font-display`), em especial a seção 6, com os padrões de formulário, menu de conta e perfil. Em caso de divergência, valem os tokens de `src/app/globals.css`.
 
 ## 2. Escopo
 
