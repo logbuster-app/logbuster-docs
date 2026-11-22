@@ -17,6 +17,7 @@
   - [SPEC-FRONT-04 · Modal de Avaliação](specs/front/SPEC-FRONT-04-modal-cadastro-avaliacao.md)
   - [SPEC-FRONT-05 · Busca via Backend](specs/front/SPEC-FRONT-05-adaptar-busca-para-backend.md)
   - [SPEC-FRONT-06 · Filme Específico via Backend](specs/front/SPEC-FRONT-06-adaptar-detalhe-filme-backend.md)
+  - [SPEC-FRONT-07 · Contas, Sessão e Perfil](specs/front/SPEC-FRONT-07-contas-sessao-perfil.md)
 - SPECs Back-end (`logbuster-api`)
   - [SPEC-BACK-00 · Setup & Arquitetura API](specs/back/SPEC-BACK-00-setup-arquitetura-api.md)
   - [SPEC-BACK-01 · POST Cadastro Avaliação](specs/back/SPEC-BACK-01-post-cadastro-avaliacao.md)
