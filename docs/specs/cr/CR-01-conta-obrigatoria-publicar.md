@@ -1,6 +1,6 @@
 # CR-01 — Conta obrigatória para publicar avaliação
 
-- **Status:** Approved
+- **Status:** Implemented na `main` do `logbuster-api` (commit `045f8cf`, 22/11/2026, CI verde). Falta validar no deploy de teste.
 - **Card Trello:** `[CR-01]` *(atualizar com o link do card)*
 - **Repositório:** `logbuster-api`
 - **Responsável:** Marcelo Palmeira (Back A)
@@ -71,8 +71,8 @@ Confirmação de e-mail, limite de requisições, migração das avaliações an
 
 ## 7. Definição de Pronto (DoD)
 
-- [ ] Rota exigindo token, ramo anônimo removido, testes atualizados (os testes que publicam sem login passam a usar token) e CI verde.
-- [ ] OpenAPI e Docsify do `logbuster-api` atualizados.
+- [x] Rota exigindo token, ramo anônimo removido, testes atualizados (os testes que publicam sem login passam a usar token) e CI verde.
+- [x] OpenAPI e Docsify do `logbuster-api` atualizados.
 - [ ] Testado no deploy de teste (23/11).
 - [ ] Thyago avisado de que o back já exige token (FRONT-07).
 - [ ] Status deste CR alterado para `Implemented` no [registro](README.md).
