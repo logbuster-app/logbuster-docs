@@ -29,4 +29,7 @@
   - [SPEC-BACK-07 · GET Filme Específico (OMDb)](specs/back/SPEC-BACK-07-get-filme-especifico-omdb.md)
   - [SPEC-BACK-08 · Autenticação e Perfil Público](specs/back/SPEC-BACK-08-auth-perfil-publico.md)
   - [SPEC-BACK-09 · Resumo, Spoiler e Arquétipo](specs/back/SPEC-BACK-09-ia-e-arquetipo.md)
+- Change Requests (CR)
+  - [Registro de Mudanças](specs/cr/README.md)
+  - [CR-02 · Spoiler com IA após publicar](specs/cr/CR-02-spoiler-ia-pos-publicacao.md)
 - [ADRs (Pós-PR & Decisões)](adr/README.md)
