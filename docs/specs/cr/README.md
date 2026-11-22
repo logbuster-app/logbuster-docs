@@ -15,5 +15,5 @@ Registro das mudanças aprovadas **depois** que uma SPEC foi aprovada ou impleme
 | CR | Título | SPECs afetadas | Responsável | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | [CR-01](CR-01-conta-obrigatoria-publicar.md) | Conta obrigatória para publicar avaliação | SPEC-BACK-01, SPEC-BACK-08 *(front incorporado direto na SPEC-FRONT-07)* | Marcelo | Implemented na `main` (`045f8cf`, 22/11), falta validar no deploy de teste |
-| [CR-02](CR-02-spoiler-ia-pos-publicacao.md) | Spoiler com IA processado depois de publicar | SPEC-BACK-09, SPEC-API-00, SPEC-BACK-01, SPEC-BACK-02, SPEC-BACK-03, SPEC-BACK-08 | João Victor | Approved |
+| [CR-02](CR-02-spoiler-ia-pos-publicacao.md) | Antispoiler em camadas: IA após publicar e segunda opinião por voto | SPEC-BACK-09, SPEC-BACK-06, SPEC-BACK-01, SPEC-API-00 *(sem mudança no front)* | João Victor ou João Raphael | Approved |
 | CR-03 | Conta obrigatória para votar e reagir | SPEC-BACK-06, SPEC-FRONT-03 | Marcelo | Approved *(arquivo a escrever)* |
