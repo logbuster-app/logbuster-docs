@@ -1,6 +1,6 @@
 # CR-02 — Antispoiler: IA após publicar e comunidade com 10 votos
 
-- **Status:** Approved
+- **Status:** Implemented na API (`d5344b5`, PR #7, 23/11). Falta validar no deploy de teste e ajustar o front para 10 votos (FRONT-08)
 - **Card Trello:** `[CR-02]` *(atualizar com o link do card)*
 - **Repositório:** `logbuster-api` (back) e `logbuster-web` (limiar de votos, no card FRONT-08)
 - **Responsável:** João Victor (Back B) ou João Raphael, com Marcos no front
@@ -163,10 +163,10 @@ Reavaliação escalada por votos, regra por contexto do filme, peso de voto por 
 
 ## 9. Definição de Pronto (DoD)
 
-- [ ] Testes com agendador falso, IA e OMDb simuladas, e CI verde.
-- [ ] Validação com IA real: 10 avaliações de um mesmo filme (5 com spoiler claro e 5 só com opinião ou premissa), com o resultado anotado no card. Se errar muito, ajustar o prompt.
+- [x] Testes com agendador falso, IA e OMDb simuladas, e CI verde.
+- [x] Validação com IA real: 10 avaliações de um mesmo filme (5 com spoiler claro e 5 só com opinião ou premissa), com o resultado anotado no card. Se errar muito, ajustar o prompt. *(23/11, Matrix, `gemini-3.5-flash-lite`: 10/10)*
 - [ ] Front: limiar de 10 votos no `ReviewCard` (card FRONT-08).
 - [ ] Testado no deploy de teste (23/11), com a chave da IA configurada.
-- [ ] OpenAPI e Docsify do `logbuster-api` atualizados.
-- [ ] Status deste CR alterado para `Implemented` no [registro](README.md).
+- [x] OpenAPI e Docsify do `logbuster-api` atualizados.
+- [x] Status deste CR alterado para `Implemented` no [registro](README.md).
 - [ ] PR revisado e na `main`.
